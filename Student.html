@@ -1,0 +1,456 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Student Management System</title>
+<style>
+:root {
+  --bg:#0b1020; --card:#141e33; --border:#29364e;
+  --text:#eef4ff; --muted:#a9b7ce; --teal:#77e0c3;
+  --red:#ff8585;
+}
+* { box-sizing:border-box; margin:0; padding:0; }
+body {
+  font-family:Arial,sans-serif; background:var(--bg);
+  color:var(--text); line-height:1.6;
+}
+.container { width:94%; max-width:1200px; margin:auto; }
+header { padding:22px 0; border-bottom:1px solid var(--border); }
+header h1 { color:var(--teal); }
+header p, .muted { color:var(--muted); }
+main { padding:28px 0 50px; }
+.stats {
+  display:grid; grid-template-columns:repeat(4,1fr);
+  gap:15px; margin-bottom:25px;
+}
+.card {
+  background:var(--card); border:1px solid var(--border);
+  border-radius:14px; padding:20px; min-width:0;
+}
+.stat-label { color:var(--muted); font-size:.9rem; }
+.stat-value { font-size:1.8rem; font-weight:bold; overflow-wrap:anywhere; }
+.teal { color:var(--teal); }
+.layout {
+  display:grid; grid-template-columns:310px minmax(0,1fr);
+  gap:20px; align-items:start;
+}
+h2 { font-size:1.25rem; margin-bottom:15px; }
+h3 { margin-bottom:8px; }
+form { display:grid; gap:12px; }
+label { display:block; margin-bottom:5px; font-size:.9rem; }
+input, select {
+  width:100%; padding:10px; border:1px solid var(--border);
+  border-radius:8px; background:var(--bg); color:var(--text);
+  font:inherit; min-width:0;
+}
+input:focus, select:focus { outline:2px solid var(--teal); }
+button {
+  cursor:pointer; border:0; border-radius:8px;
+  padding:10px 13px; font:inherit;
+}
+.primary { background:var(--teal); color:#08151a; font-weight:bold; }
+.secondary { background:#25344b; color:var(--text); }
+.danger { background:#462630; color:#ffb3b3; }
+.toolbar {
+  display:flex; flex-wrap:wrap; gap:10px; margin-bottom:16px;
+}
+.toolbar input { flex:1; min-width:150px; }
+.table-wrap { overflow-x:auto; }
+table { width:100%; border-collapse:collapse; min-width:650px; }
+th, td {
+  padding:12px 10px; text-align:left;
+  border-bottom:1px solid var(--border);
+}
+th { color:var(--muted); font-size:.85rem; }
+td { font-size:.9rem; }
+.actions { display:flex; gap:7px; }
+.actions button { padding:6px 9px; }
+.badge {
+  display:inline-block; border-radius:20px; padding:3px 9px;
+  background:#77e0c319; color:var(--teal); font-size:.8rem;
+}
+.empty { text-align:center; color:var(--muted); padding:25px; }
+.note { font-size:.82rem; color:var(--muted); margin-top:12px; }
+footer {
+  border-top:1px solid var(--border); text-align:center;
+  color:var(--muted); padding:20px;
+}
+@media(max-width:900px) {
+  .layout { grid-template-columns:1fr; }
+  .stats { grid-template-columns:repeat(2,1fr); }
+}
+@media(max-width:480px) {
+  .stats { gap:9px; }
+  .card { padding:14px; }
+  .stat-value { font-size:1.4rem; }
+  .toolbar { flex-direction:column; }
+  .toolbar button, .toolbar select { width:100%; }
+}
+</style>
+</head>
+<body>
+<header>
+  <div class="container">
+    <h1>🎓 Student Management System</h1>
+    <p>Manage student records in one place</p>
+  </div>
+</header>
+
+<main class="container">
+  <section class="stats">
+    <div class="card">
+      <div class="stat-label">Total Students</div>
+      <div class="stat-value teal" id="totalStudents">0</div>
+    </div>
+    <div class="card">
+      <div class="stat-label">Average Marks</div>
+      <div class="stat-value" id="averageMarks">0</div>
+    </div>
+    <div class="card">
+      <div class="stat-label">Passed Students</div>
+      <div class="stat-value" id="passedStudents">0</div>
+    </div>
+    <div class="card">
+      <div class="stat-label">Courses</div>
+      <div class="stat-value" id="totalCourses">0</div>
+    </div>
+  </section>
+
+  <section class="layout">
+    <div class="card">
+      <h2 id="formHeading">Add Student</h2>
+      <form id="studentForm">
+        <div>
+          <label for="studentId">Student ID</label>
+          <input id="studentId" maxlength="30"
+            placeholder="e.g. STU101" required>
+        </div>
+        <div>
+          <label for="studentName">Full Name</label>
+          <input id="studentName" maxlength="80"
+            placeholder="Enter full name" required>
+        </div>
+        <div>
+          <label for="email">Email</label>
+          <input id="email" type="email" maxlength="120"
+            placeholder="student@example.com" required>
+        </div>
+        <div>
+          <label for="course">Course</label>
+          <select id="course" required>
+            <option value="">Select course</option>
+            <option>B.Tech</option>
+            <option>B.Sc</option>
+            <option>B.Com</option>
+            <option>BCA</option>
+            <option>MCA</option>
+            <option>MBA</option>
+            <option>Other</option>
+          </select>
+        </div>
+        <div>
+          <label for="marks">Marks (0–100)</label>
+          <input id="marks" type="number" min="0" max="100"
+            step="0.01" placeholder="Enter marks" required>
+        </div>
+        <div>
+          <label for="attendance">Attendance (%)</label>
+          <input id="attendance" type="number" min="0" max="100"
+            step="0.01" placeholder="Enter attendance" required>
+        </div>
+        <button class="primary" id="submitButton" type="submit">
+          + Add Student
+        </button>
+        <button class="secondary" id="cancelEdit" type="button"
+          hidden>Cancel Editing</button>
+      </form>
+      <p class="note">Demo version: records are saved in this browser only.</p>
+    </div>
+
+    <div class="card">
+      <h2>Student Records</h2>
+      <div class="toolbar">
+        <input id="search" type="search"
+          placeholder="Search name, ID, or email">
+        <select id="courseFilter" aria-label="Filter by course">
+          <option value="">All courses</option>
+          <option>B.Tech</option>
+          <option>B.Sc</option>
+          <option>B.Com</option>
+          <option>BCA</option>
+          <option>MCA</option>
+          <option>MBA</option>
+          <option>Other</option>
+        </select>
+        <button class="secondary" id="exportButton" type="button">
+          Export CSV
+        </button>
+      </div>
+
+      <div class="table-wrap">
+        <table>
+          <thead>
+            <tr>
+              <th>ID</th><th>Name</th><th>Course</th>
+              <th>Marks</th><th>Attendance</th><th>Status</th>
+              <th>Actions</th>
+            </tr>
+          </thead>
+          <tbody id="studentTable"></tbody>
+        </table>
+      </div>
+      <p id="emptyMessage" class="empty">No students added yet.</p>
+    </div>
+  </section>
+</main>
+
+<footer>
+  Student Management System · Built with HTML, CSS and JavaScript
+</footer>
+
+<script>
+const STORAGE_KEY = "studentManagementRecords_v1";
+const form = document.getElementById("studentForm");
+const table = document.getElementById("studentTable");
+const search = document.getElementById("search");
+const courseFilter = document.getElementById("courseFilter");
+
+let students = [];
+let editingId = null;
+
+try {
+  const saved = JSON.parse(localStorage.getItem(STORAGE_KEY) || "[]");
+  if (Array.isArray(saved)) {
+    students = saved.filter(s =>
+      s && typeof s.id === "string" &&
+      typeof s.name === "string" &&
+      typeof s.email === "string" &&
+      typeof s.course === "string" &&
+      Number.isFinite(s.marks) && s.marks >= 0 && s.marks <= 100 &&
+      Number.isFinite(s.attendance) &&
+      s.attendance >= 0 && s.attendance <= 100
+    );
+  }
+} catch (error) {
+  students = [];
+}
+
+function saveStudents() {
+  try {
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(students));
+    return true;
+  } catch (error) {
+    alert("Unable to save records. Check browser storage settings.");
+    return false;
+  }
+}
+
+function passed(student) {
+  return student.marks >= 40;
+}
+
+function updateStats() {
+  const average = students.length
+    ? students.reduce((sum, s) => sum + s.marks, 0) / students.length
+    : 0;
+
+  document.getElementById("totalStudents").textContent = students.length;
+  document.getElementById("averageMarks").textContent = average.toFixed(1);
+  document.getElementById("passedStudents").textContent =
+    students.filter(passed).length;
+  document.getElementById("totalCourses").textContent =
+    new Set(students.map(s => s.course)).size;
+}
+
+function makeCell(text) {
+  const td = document.createElement("td");
+  td.textContent = text;
+  return td;
+}
+
+function render() {
+  updateStats();
+  table.replaceChildren();
+
+  const query = search.value.trim().toLowerCase();
+  const selectedCourse = courseFilter.value;
+
+  const visible = students.filter(s => {
+    const matchesQuery =
+      s.id.toLowerCase().includes(query) ||
+      s.name.toLowerCase().includes(query) ||
+      s.email.toLowerCase().includes(query);
+    return matchesQuery &&
+      (!selectedCourse || s.course === selectedCourse);
+  });
+
+  document.getElementById("emptyMessage").hidden = visible.length > 0;
+  document.getElementById("emptyMessage").textContent =
+    students.length === 0
+      ? "No students added yet."
+      : "No matching students found.";
+
+  visible.forEach(s => {
+    const tr = document.createElement("tr");
+    tr.append(
+      makeCell(s.id),
+      makeCell(s.name),
+      makeCell(s.course),
+      makeCell(s.marks + "/100"),
+      makeCell(s.attendance + "%")
+    );
+
+    const statusCell = document.createElement("td");
+    const badge = document.createElement("span");
+    badge.className = "badge";
+    badge.textContent = passed(s) ? "Pass" : "Needs improvement";
+    if (!passed(s)) {
+      badge.style.color = "#ffb3b3";
+      badge.style.background = "#462630";
+    }
+    statusCell.appendChild(badge);
+    tr.appendChild(statusCell);
+
+    const actionsCell = document.createElement("td");
+    const actions = document.createElement("div");
+    actions.className = "actions";
+
+    const editButton = document.createElement("button");
+    editButton.type = "button";
+    editButton.className = "secondary";
+    editButton.textContent = "Edit";
+    editButton.addEventListener("click", () => startEdit(s.id));
+
+    const deleteButton = document.createElement("button");
+    deleteButton.type = "button";
+    deleteButton.className = "danger";
+    deleteButton.textContent = "Delete";
+    deleteButton.addEventListener("click", () => removeStudent(s.id));
+
+    actions.append(editButton, deleteButton);
+    actionsCell.appendChild(actions);
+    tr.appendChild(actionsCell);
+    table.appendChild(tr);
+  });
+}
+
+form.addEventListener("submit", event => {
+  event.preventDefault();
+
+  const id = document.getElementById("studentId").value.trim();
+  const name = document.getElementById("studentName").value.trim();
+  const email = document.getElementById("email").value.trim();
+  const course = document.getElementById("course").value;
+  const marks = Number(document.getElementById("marks").value);
+  const attendance = Number(document.getElementById("attendance").value);
+
+  if (!id || !name || !email || !course ||
+      !Number.isFinite(marks) || marks < 0 || marks > 100 ||
+      !Number.isFinite(attendance) ||
+      attendance < 0 || attendance > 100) {
+    alert("Please enter valid student details.");
+    return;
+  }
+
+  const duplicate = students.some(s =>
+    s.id.toLowerCase() === id.toLowerCase() && s.id !== editingId
+  );
+
+  if (duplicate) {
+    alert("This Student ID already exists.");
+    return;
+  }
+
+  const updated = {
+    id, name, email, course,
+    marks: Math.round(marks * 100) / 100,
+    attendance: Math.round(attendance * 100) / 100
+  };
+
+  const previous = students;
+  if (editingId !== null) {
+    students = students.map(s => s.id === editingId ? updated : s);
+  } else {
+    students = [...students, updated];
+  }
+
+  if (!saveStudents()) {
+    students = previous;
+    return;
+  }
+
+  resetForm();
+  render();
+});
+
+function startEdit(id) {
+  const s = students.find(item => item.id === id);
+  if (!s) return;
+
+  editingId = id;
+  document.getElementById("studentId").value = s.id;
+  document.getElementById("studentId").disabled = true;
+  document.getElementById("studentName").value = s.name;
+  document.getElementById("email").value = s.email;
+  document.getElementById("course").value = s.course;
+  document.getElementById("marks").value = s.marks;
+  document.getElementById("attendance").value = s.attendance;
+  document.getElementById("formHeading").textContent = "Edit Student";
+  document.getElementById("submitButton").textContent = "Save Changes";
+  document.getElementById("cancelEdit").hidden = false;
+  document.getElementById("studentName").focus();
+}
+
+function resetForm() {
+  form.reset();
+  editingId = null;
+  document.getElementById("studentId").disabled = false;
+  document.getElementById("formHeading").textContent = "Add Student";
+  document.getElementById("submitButton").textContent = "+ Add Student";
+  document.getElementById("cancelEdit").hidden = true;
+}
+
+function removeStudent(id) {
+  const s = students.find(item => item.id === id);
+  if (!s || !confirm("Delete student " + s.name + "?")) return;
+
+  const previous = students;
+  students = students.filter(item => item.id !== id);
+
+  if (!saveStudents()) {
+    students = previous;
+    return;
+  }
+
+  if (editingId === id) resetForm();
+  render();
+}
+
+document.getElementById("cancelEdit").addEventListener("click", resetForm);
+search.addEventListener("input", render);
+courseFilter.addEventListener("change", render);
+
+document.getElementById("exportButton").addEventListener("click", () => {
+  const headers = ["Student ID", "Name", "Email", "Course", "Marks", "Attendance"];
+  const quote = value => '"' + String(value).replace(/"/g, '""') + '"';
+  const rows = students.map(s =>
+    [s.id, s.name, s.email, s.course, s.marks, s.attendance]
+      .map(quote).join(",")
+  );
+
+  const csv = "\uFEFF" + [headers.map(quote).join(","), ...rows].join("\r\n");
+  const url = URL.createObjectURL(
+    new Blob([csv], { type: "text/csv;charset=utf-8;" })
+  );
+  const link = document.createElement("a");
+  link.href = url;
+  link.download = "students.csv";
+  link.click();
+  setTimeout(() => URL.revokeObjectURL(url), 1000);
+});
+
+render();
+</script>
+</body>
+</html>
